@@ -10,7 +10,7 @@ import Foundation
 public enum TokenType {
     case IDENTIFIER
     case STRING
-    case NMBER
+    case NUMBER
     case LPAREN
     case RPAREN
     case LBRACE
@@ -38,6 +38,15 @@ public enum TokenType {
     case GREATER_EQUALS
     case LESS
     case LESS_EQUALS
+    case BANG
+    case BANG_EQUAL
+    case EQUAL_EQUAL
+    case OR
+    case SUPER
+    case SELF
+    case VAR
+    case WHILE
+    case FOR
 }
 
 class Token {
