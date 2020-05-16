@@ -1,5 +1,6 @@
 import Foundation
 import ArgumentParser
+import hicore
 
 struct hi: ParsableCommand {
     @Argument(help: "hi file to run")
@@ -18,7 +19,7 @@ struct hi: ParsableCommand {
         if let file = self.file {
             run(withFile: file)
         } else {
-            // enter REPL
+            runPrompt()
         }
     }
     
@@ -38,10 +39,22 @@ struct hi: ParsableCommand {
     
     func run(withInput input: String) {
         let scn = Scanner(withSource: input)
-        _ = scn.scanTokens().map {(tokens) in
+        let result = scn.scanTokens()
+        
+        do {
+            let tokens = try result.get()
             for token in tokens {
                 print(token)
             }
+        } catch {
+            print("Failed to get tokens")
+        }
+    }
+    
+    func runPrompt() {
+        while true {
+            print("> ")
+            run(withInput: readLine() ?? "")
         }
     }
 }

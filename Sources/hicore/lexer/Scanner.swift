@@ -38,16 +38,15 @@ public class Scanner {
         return reservedKwds
     }()
     
-    init(withSource source: String) {
+    public init(withSource source: String) {
         self.source = source
         self.current = source.startIndex
         self.start = self.current
     }
     
-    func scanTokens() -> Result<Array<Token>, Error> {
+    public func scanTokens() -> Result<Array<Token>, Error> {
         while !isAtEnd() {
             start = current
-            
             do {
                 try scanToken()
             } catch ScannerErrors.unexpectedToken(let line) {
@@ -84,7 +83,7 @@ public class Scanner {
                 addToken(ofType: .SLASH)
             }
         
-        case "\r", " ", "\t":
+        case "\r", " ", "\t": // ignore whitespace
             break
         
         case "\"": try string(); break
@@ -179,8 +178,9 @@ public class Scanner {
     }
     
     private func advance() -> Character {
+        let result = source[current]
         current = source.index(after: current)
-        return source[current]
+        return result
     }
     
     private func addToken(ofType type: TokenType, withLiteral literal: AnyObject? = nil) {
@@ -188,8 +188,8 @@ public class Scanner {
         tokens.append(Token(withType: type, lexeme: lexeme, line: line, literal: literal))
     }
     
-    func isAtEnd() -> Bool {
-        return current < source.endIndex
+    private func isAtEnd() -> Bool {
+        return current > source.index(before: source.endIndex)
     }
     
 }

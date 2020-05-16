@@ -49,11 +49,17 @@ public enum TokenType {
     case FOR
 }
 
-class Token {
+public class Token: CustomDebugStringConvertible {
     let tokenType: TokenType
     let lexeme: String
     let line: Int
     let literal: AnyObject?
+    
+    public var debugDescription: String {
+        get {
+            return "\(tokenType) \(lexeme)"
+        }
+    }
     
     init(withType type: TokenType, lexeme: String, line: Int, literal: AnyObject?) {
         self.tokenType = type
