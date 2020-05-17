@@ -56,6 +56,7 @@ public class Scanner {
             }
         }
         
+        tokens.append(Token(withType: .EOF, lexeme: "", line: line, literal: nil))
         return .success(tokens)
     }
     

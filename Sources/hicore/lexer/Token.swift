@@ -47,6 +47,7 @@ public enum TokenType {
     case VAR
     case WHILE
     case FOR
+    case EOF
 }
 
 public class Token: CustomDebugStringConvertible {

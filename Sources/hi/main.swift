@@ -46,6 +46,11 @@ struct hi: ParsableCommand {
             for token in tokens {
                 print(token)
             }
+            let parser = Parser(withTokens: tokens)
+            let expr = parser.parse()
+            let printer = AstPrinter()
+            print(printer.print(expr))
+            
         } catch {
             print("Failed to get tokens")
         }
