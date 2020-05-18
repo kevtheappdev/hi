@@ -39,6 +39,7 @@ struct hi: ParsableCommand {
     
     func run(withInput input: String) {
         let scn = Scanner(withSource: input)
+        let interpreter = Interpreter()
         let result = scn.scanTokens()
         
         do {
@@ -50,7 +51,7 @@ struct hi: ParsableCommand {
             let expr = parser.parse()
             let printer = AstPrinter()
             print(printer.print(expr))
-            
+            interpreter.interpret(expr: expr)
         } catch {
             print("Failed to get tokens")
         }
@@ -58,7 +59,7 @@ struct hi: ParsableCommand {
     
     func runPrompt() {
         while true {
-            print("> ")
+            print("> ", terminator: "")
             run(withInput: readLine() ?? "")
         }
     }
