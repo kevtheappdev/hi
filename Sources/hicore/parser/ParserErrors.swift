@@ -7,6 +7,4 @@
 
 import Foundation
 
-public enum ParseError: Error {
-    
-}
+public struct ParseError: Error {}

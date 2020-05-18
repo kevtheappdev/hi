@@ -16,72 +16,76 @@ public class Parser {
     }
     
     public func parse() -> Expr {
-        return expression() // should error handle with exceptions
+        do {
+            return try expression() // should error handle with exceptions
+        } catch {
+            fatalError("failed to parse expressions") // TODO: probably return nil here?
+        }
     }
     
-    private func expression() -> Expr {
-        return equality()
+    private func expression() throws -> Expr {
+        return try equality()
     }
 
-    private func equality() -> Expr {
-        var expr = comparison()
+    private func equality() throws -> Expr {
+        var expr = try comparison()
 
         while match(.BANG_EQUAL, .EQUAL_EQUAL) {
             let op = previous()
-            let right = comparison()
+            let right = try comparison()
             expr = Binary(left: expr, op: op, right: right)
         }
 
         return expr
     }
 
-    private func comparison() -> Expr {
-        var expr = addition()
+    private func comparison() throws -> Expr {
+        var expr = try addition()
 
         while match(.GREATER, .GREATER_EQUALS, .LESS, .LESS_EQUALS) {
             let op = previous()
-            let right = addition()
+            let right = try addition()
             expr = Binary(left: expr, op: op, right: right)
         }
 
         return expr
     }
 
-    private func addition() -> Expr {
-        var expr = multiplication()
+    private func addition() throws -> Expr {
+        var expr = try multiplication()
 
         while match(.MINUS, .PLUS) {
             let op = previous()
-            let right = multiplication()
+            let right = try multiplication()
             expr = Binary(left: expr, op: op, right: right)
         }
 
         return expr
     }
 
-    private func multiplication() -> Expr {
-        var expr = unary()
+    private func multiplication() throws -> Expr {
+        var expr = try unary()
 
         while match(.SLASH, .STAR) {
             let op = previous()
-            let right = multiplication()
+            let right = try unary()
             expr = Binary(left: expr, op: op, right: right)
         }
 
         return expr
     }
 
-    private func unary() -> Expr {
+    private func unary() throws -> Expr {
         if match(.BANG, .MINUS) {
             let op = previous()
-            let right = unary()
+            let right = try unary()
             return Unary(op: op, right: right)
         }
         
-        return primary()
+        return try primary()
     }
     
-    private func primary() -> Expr {
+    private func primary() throws -> Expr {
         if match(.NAHH) { return Literal(value: false)}
         if match(.YERR) { return Literal(value: true)}
         if match(.NADA) { return Literal(value: nil)}
@@ -91,8 +95,8 @@ public class Parser {
         }
         
         if match(.LPAREN) {
-            let expr = expression()
-            _ = consume(type: .RPAREN, message: "no rparen doe")
+            let expr = try expression()
+            _ = try consume(type: .RPAREN, message: "no rparen doe")
             return Grouping(expression: expr)
         }
         
@@ -133,10 +137,15 @@ public class Parser {
         return tokens[current - 1]
     }
     
-    private func consume(type: TokenType, message: String) -> Token {
+    private func consume(type: TokenType, message: String) throws -> Token {
         if check(type) { return advance() }
         
-        fatalError("da fuck: \(message)")
+        throw error(withTok: peek(), andMessage: message)
+    }
+    
+    private func error(withTok tok: Token, andMessage message: String) -> ParseError {
+        Hi.error(tok.line, message)
+        return ParseError()
     }
     
 }
