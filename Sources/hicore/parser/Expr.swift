@@ -10,18 +10,18 @@ import Foundation
 
 public protocol ExprVisitor: class {
     associatedtype R
-    func visitAssignExpr(expr: Assign) -> R
-    func visitBinaryExpr(expr: Binary) -> R
+    func visitAssignExpr(expr: Assign) throws -> R
+    func visitBinaryExpr(expr: Binary) throws -> R
 //    func visitCallExpr(expr: Call) -> R
-    func visitGroupingExpr(expr: Grouping) -> R
-    func visitLiteralExpr(expr: Literal) -> R
+    func visitGroupingExpr(expr: Grouping) throws -> R
+    func visitLiteralExpr(expr: Literal) throws -> R
 //    func visitLogicalExpr(expr: Logical) -> R
-    func visitUnaryExpr(expr: Unary) -> R
-    func visitVariableExpr(expr: Variable) -> R
+    func visitUnaryExpr(expr: Unary) throws -> R
+    func visitVariableExpr(expr: Variable) throws -> R
 }
 
 public protocol Expr {
-    func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor
+    func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor
 }
 
 
@@ -29,8 +29,8 @@ public struct Assign: Expr {
     let name: Token
     let value: Expr
 
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitAssignExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitAssignExpr(expr: self) as! R
     }
 }
 
@@ -40,8 +40,8 @@ public struct Binary: Expr {
     let op: Token
     let right: Expr
     
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitBinaryExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitBinaryExpr(expr: self) as! R
     }
 }
 
@@ -59,8 +59,8 @@ public struct Binary: Expr {
 public struct Grouping: Expr {
     let expression: Expr
     
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitGroupingExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitGroupingExpr(expr: self) as! R
     }
 }
 
@@ -83,8 +83,8 @@ public struct Literal: Expr, CustomDebugStringConvertible {
     
     
     
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitLiteralExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitLiteralExpr(expr: self) as! R
     }
 }
 
@@ -102,15 +102,15 @@ public struct Unary: Expr {
     let op: Token
     let right: Expr
     
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitUnaryExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitUnaryExpr(expr: self) as! R
     }
 }
 
 public struct Variable: Expr {
     let name: Token
     
-    public func acceptVisitor<T, R>(visitor: T) -> R where T : ExprVisitor {
-        return visitor.visitVariableExpr(expr: self) as! R
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitVariableExpr(expr: self) as! R
     }
 }

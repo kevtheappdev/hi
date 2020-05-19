@@ -23,16 +23,16 @@ public class AstPrinter: ExprVisitor {
 //        return parenthesize(name: expr.name.lexeme, expr.value)
 //    }
     
-    public func visitBinaryExpr(expr: Binary) -> String {
-        return parenthesize(name: expr.op.lexeme, expr.left, expr.right)
+    public func visitBinaryExpr(expr: Binary) throws -> String {
+        return try parenthesize(name: expr.op.lexeme, expr.left, expr.right)
     }
     
 //    public func visitCallExpr(expr: Call) -> String {
 //        return parenthesize(name: "calling", expr) // TODO: wrong
 //    }
     
-    public func visitGroupingExpr(expr: Grouping) -> String {
-        return parenthesize(name: "group", expr.expression)
+    public func visitGroupingExpr(expr: Grouping) throws -> String {
+        return try parenthesize(name: "group", expr.expression)
     }
     
     public func visitLiteralExpr(expr: Literal) -> String {
@@ -44,21 +44,21 @@ public class AstPrinter: ExprVisitor {
 //        return expr.op.lexeme // TODO: fix
 //    }
     
-    public func visitUnaryExpr(expr: Unary) -> String {
-        return parenthesize(name: expr.op.lexeme, expr.right)
+    public func visitUnaryExpr(expr: Unary) throws -> String {
+        return try parenthesize(name: expr.op.lexeme, expr.right)
     }
     
     public typealias R = String
 
-    public func print(_ expr: Expr) -> String {
-        return expr.acceptVisitor(visitor: self)
+    public func print(_ expr: Expr) throws -> String {
+        return try expr.acceptVisitor(visitor: self)
     }
     
-    private func parenthesize(name: String, _ exprs: Expr...) -> String {
+    private func parenthesize(name: String, _ exprs: Expr...) throws -> String {
         var result = "(\(name)"
         
         for expr in exprs {
-            result += expr.acceptVisitor(visitor: self)
+            result += try expr.acceptVisitor(visitor: self)
         }
         result += ")"
         

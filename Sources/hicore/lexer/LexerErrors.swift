@@ -1,5 +1,5 @@
 //
-//  Errors.swift
+//  LexerErrors.swift
 //  
 //
 //  Created by Kevin Turner on 4/17/20.

@@ -13,6 +13,7 @@ public class Hi {
     
     // MARK: Error handling
     public static func error(_ line: Int, _ message: String) {
+        hadError = true
         report(atLine: line, where: "", withMessage: message) // TODO: implement 'where' part
     }
     
