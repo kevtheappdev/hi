@@ -9,6 +9,10 @@ import Foundation
 
 
 public class AstPrinter: ExprVisitor {
+    public func visitLogicalExpr(expr: Logical) throws -> String {
+        return ""
+    }
+    
     public func visitAssignExpr(expr: Assign) -> String {
         return ""
     }
@@ -39,10 +43,6 @@ public class AstPrinter: ExprVisitor {
         if expr.value == nil { return "nada" }
         return expr.debugDescription
     }
-    
-//    public func visitLogicalExpr(expr: Logical) -> String {
-//        return expr.op.lexeme // TODO: fix
-//    }
     
     public func visitUnaryExpr(expr: Unary) throws -> String {
         return try parenthesize(name: expr.op.lexeme, expr.right)

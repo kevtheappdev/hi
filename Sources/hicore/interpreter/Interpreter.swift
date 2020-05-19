@@ -83,6 +83,19 @@ public class Interpreter {
 
 // MARK: Expression Visitors
 extension Interpreter: ExprVisitor {
+    public func visitLogicalExpr(expr: Logical) throws -> Any? {
+        let left = try evaluate(expr.left)
+        
+        // short circuit if possible
+        if expr.op.tokenType == .OR {
+            if isTruthy(left) { return left }
+        } else {
+            if !isTruthy(left) { return left }
+        }
+        
+        return try evaluate(expr.right)
+    }
+    
     public func visitAssignExpr(expr: Assign) throws -> Any? {
         let val = try evaluate(expr.value)
         
@@ -167,6 +180,16 @@ extension Interpreter: ExprVisitor {
 
 // MARK: Statement Visitors
 extension Interpreter: StmtVisitor {
+    public func visitIfStmt(_ stmt: If) throws -> Any? {
+        if isTruthy(try evaluate(stmt.condition)) {
+            try execute(stmt: stmt.thenBranch)
+        } else if let elseBranch = stmt.elseBranch {
+            try execute(stmt: elseBranch)
+        }
+        
+        return nil
+    }
+    
     public func visitBlockStmt(_ stmt: Block) throws -> Any? {
         try executeBlock(stmts: stmt.statements, environ: Environment(enclosing: self.environment))
         return nil

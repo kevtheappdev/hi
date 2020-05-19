@@ -46,6 +46,7 @@ public class Parser {
     }
     
     private func statement() throws -> Stmt {
+        if match(.IF) { return try ifStatement()}
         if match(.PRINT) { return try printStatement() }
         if match(.LBRACE) { return Block(statements: try block())}
         
@@ -61,6 +62,18 @@ public class Parser {
         
         _ = try consume(type: .RBRACE, message: "Expect '}' after block.")
         return statements
+    }
+    
+    private func ifStatement() throws -> Stmt {
+        let condition = try expression()
+        let thenBranch = try statement()
+        
+        var elseBranch: Stmt? = nil
+        if match(.ELSE) {
+            elseBranch = try statement()
+        }
+        
+        return If(condition: condition, thenBranch: thenBranch, elseBranch: elseBranch)
     }
     
     private func printStatement() throws -> Stmt {
@@ -90,7 +103,7 @@ public class Parser {
     }
     
     private func assignment() throws -> Expr {
-        let expr = try equality()
+        let expr = try or()
         
         if match(.EQUAL) {
             let equals = previous()
@@ -102,6 +115,30 @@ public class Parser {
             }
             
             _ = error(withTok: equals, andMessage: "Invalid assignment target.")
+        }
+        
+        return expr
+    }
+    
+    private func or() throws -> Expr {
+        var expr = try and()
+        
+        while match(.OR) {
+            let op = previous()
+            let right = try and()
+            expr = Logical(left: expr, op: op, right: right)
+        }
+        
+        return expr
+    }
+    
+    private func and() throws -> Expr {
+        var expr = try equality()
+        
+        while match(.AND) {
+            let op = previous()
+            let right = try equality()
+            expr = Logical(left: expr, op: op, right: right)
         }
         
         return expr

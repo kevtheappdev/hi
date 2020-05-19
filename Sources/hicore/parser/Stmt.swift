@@ -13,6 +13,7 @@ public protocol StmtVisitor: class {
     func visitExpressionStmt(_ stmt: Expression) throws -> R
     func visitPrintStmt(_ stmt: Print) throws -> R
     func visitVarStmt(_ stmt: Var) throws -> R
+    func visitIfStmt(_ stmt: If) throws -> R
 }
 
 public protocol Stmt {
@@ -24,6 +25,16 @@ public struct Block: Stmt {
     
     public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitBlockStmt(self) as! R
+    }
+}
+
+public struct If: Stmt {
+    let condition: Expr
+    let thenBranch: Stmt
+    let elseBranch: Stmt?
+    
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+        return try visitor.visitIfStmt(self) as! R
     }
 }
 

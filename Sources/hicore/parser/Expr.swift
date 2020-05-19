@@ -15,7 +15,7 @@ public protocol ExprVisitor: class {
 //    func visitCallExpr(expr: Call) -> R
     func visitGroupingExpr(expr: Grouping) throws -> R
     func visitLiteralExpr(expr: Literal) throws -> R
-//    func visitLogicalExpr(expr: Logical) -> R
+    func visitLogicalExpr(expr: Logical) throws -> R
     func visitUnaryExpr(expr: Unary) throws -> R
     func visitVariableExpr(expr: Variable) throws -> R
 }
@@ -82,21 +82,20 @@ public struct Literal: Expr, CustomDebugStringConvertible {
     let value: Any?
     
     
-    
     public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
         return try visitor.visitLiteralExpr(expr: self) as! R
     }
 }
 
-//public struct Logical: Expr {
-//    let left: Expr
-//    let op: Token
-//    let right: Expr
-//    
-//    public func acceptVisitor<T, R>(visitor: T) -> R where T : Visitor {
-//        return visitor.visitLogicalExpr(expr: self) as! R
-//    }
-//}
+public struct Logical: Expr {
+    let left: Expr
+    let op: Token
+    let right: Expr
+    
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitLogicalExpr(expr: self) as! R
+    }
+}
 
 public struct Unary: Expr {
     let op: Token
