@@ -57,10 +57,13 @@ public class Hi {
             hadError = true
         } catch ScannerErrors.unexpectedToken(let line, let message) {
             error(line, message)
+            hadError = true
         } catch ScannerErrors.unterminatedString(let line, let message) {
             error(line, message)
+            hadError = true
         } catch {
             print("Encountered unexpected error: \(error.localizedDescription)")
+            hadError = true
         }
     }
     
