@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Interpreter.swift
 //  
 //
 //  Created by Kevin Turner on 5/18/20.
@@ -11,9 +11,10 @@ public class Interpreter: Visitor {
     
     public init() {}
     
-    public func interpret(expr: Expr) {
+    public func interpret(expr: Expr) -> Swift.Result<(), Error> {
         let value = evaluate(expr)
         print(stringify(value))
+        return .success(())
     }
     
     private func stringify(_ obj: Any?) -> String {
@@ -23,22 +24,20 @@ public class Interpreter: Visitor {
             return String(nonNilObj as! Double)
         }
         
-        fatalError("da fuck is this")
+        fatalError("unexpected type in stringify")
     }
     
     public func visitBinaryExpr(expr: Binary) -> Any? {
         let left = evaluate(expr.left)
         let right = evaluate(expr.right)
-        // TODO: check above for nil
-        
         
         switch expr.op.tokenType { // TODO: error check casts to Double, take care of PLUS operator (strings and double types)
         case .MINUS:
-            return (left as! Double) - (right as! Double) as Any
+            return (left as! Double) - (right as! Double)
         case .SLASH:
-            return (left as! Double) / (right as! Double) as Any
+            return (left as! Double) / (right as! Double)
         case .STAR:
-            return (left as! Double) * (right as! Double) as Any
+            return (left as! Double) * (right as! Double)
         case .GREATER:
             return (left as! Double) > (right as! Double)
         case .GREATER_EQUALS:
@@ -49,13 +48,16 @@ public class Interpreter: Visitor {
             return (left as! Double) <= (right as! Double)
         case .BANG:
             return isEqual((left as! Double), b: (right as! Double))
+        case .PLUS:
+            return (left as! Double) + (right as! Double)
         default:
-            fatalError("Invalid operator for Binary expression")
+            print("Invalid operator for Binary expression")
+            return nil
         }
     }
     
     public func visitGroupingExpr(expr: Grouping) -> Any? {
-        return evaluate(expr)
+        return evaluate(expr.expression)
     }
     
     public func visitLiteralExpr(expr: Literal) -> Any? {
@@ -68,9 +70,9 @@ public class Interpreter: Visitor {
         
         switch expr.op.tokenType {
         case .MINUS:
-            return -(right as! Double) as Any
+            return -(right as! Double)
         case .BANG:
-            return !isTruthy(right) as Any
+            return !isTruthy(right)
         default:
             fatalError("Invalid Unary operator")
         }

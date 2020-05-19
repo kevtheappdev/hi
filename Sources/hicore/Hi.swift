@@ -19,12 +19,11 @@ public class Hi {
         print("[line \(line)] Error \(location): \(message)")
     }
     
-    
-    
     public static func run(withFile file: String) {
         let fm = FileManager()
         if !fm.isReadableFile(atPath: file) {
             print("File not readable: \(file)")
+            exit(65)
         } else {
             guard let fileData = fm.contents(atPath: file) else { print("Failed to read from file: \(file)"); return }
             if let fileContents = String(data: fileData, encoding: .utf8) {
@@ -42,20 +41,22 @@ public class Hi {
     public static func run(withInput input: String) {
         let scn = Scanner(withSource: input)
         let interpreter = Interpreter()
-        let result = scn.scanTokens()
         
+        let result = scn.scanTokens()
+                        .flatMap {(tokens) in
+                            return Parser(withTokens: tokens).parse()
+                        }.map { (expr) in
+                            let printer = AstPrinter()
+                            print(printer.print(expr))
+                            return expr
+                        }.flatMap {(expr) in
+                            return interpreter.interpret(expr: expr)
+                        }
+                
         do {
-            let tokens = try result.get()
-            for token in tokens {
-                print(token)
-            }
-            let parser = Parser(withTokens: tokens)
-            let expr = parser.parse()
-            let printer = AstPrinter()
-            print(printer.print(expr))
-            interpreter.interpret(expr: expr)
-        } catch {
-            print("Failed to get tokens\(error)")
+            try result.get()
+        } catch { // TODO: fill this out
+            print("Encountered error: \(error)")
         }
     }
     

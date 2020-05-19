@@ -15,11 +15,22 @@ public class Parser {
         self.tokens = tokens
     }
     
-    public func parse() -> Expr {
+    public func parse() -> Swift.Result<Expr, Error> {
         do {
-            return try expression() // should error handle with exceptions
+            return try .success(expression()) // should error handle with exceptions
         } catch {
-            fatalError("failed to parse expressions") // TODO: probably return nil here?
+            return .failure(ParseError())
+//            fatalError("failed to parse expressions\(error)") // TODO: probably return nil here?
+        }
+    }
+    
+    private func synchronize() {
+        _ = advance()
+        
+        while !isAtEnd() {
+            if previous().tokenType == .SEMICOLON { return }
+            if match(.CLASS, .FUN, .VAR, .FOR, .IF, .WHILE, .PRINT, .RETURN) { return }
+            _ = advance()
         }
     }
     

@@ -44,7 +44,7 @@ public class Scanner {
         self.start = self.current
     }
     
-    public func scanTokens() -> Result<Array<Token>, Error> {
+    public func scanTokens() -> Swift.Result<Array<Token>, Error> {
         while !isAtEnd() {
             start = current
             do {
@@ -96,6 +96,7 @@ public class Scanner {
             } else if isAlpha(c) {
                 identifier()
             } else {
+                print("bouta throw the error\(c)")
                 throw ScannerErrors.unexpectedToken(line: line)
             }
         }
