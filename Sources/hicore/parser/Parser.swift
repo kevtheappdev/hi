@@ -48,6 +48,7 @@ public class Parser {
     private func statement() throws -> Stmt {
         if match(.IF) { return try ifStatement()}
         if match(.PRINT) { return try printStatement() }
+        if match(.WHILE) { return try whileStatement()}
         if match(.LBRACE) { return Block(statements: try block())}
         
         return try expressionStatement()
@@ -62,6 +63,13 @@ public class Parser {
         
         _ = try consume(type: .RBRACE, message: "Expect '}' after block.")
         return statements
+    }
+    
+    private func whileStatement() throws -> Stmt {
+        let condition = try expression()
+        let body = try statement()
+        
+        return While(condition: condition, body: body)
     }
     
     private func ifStatement() throws -> Stmt {

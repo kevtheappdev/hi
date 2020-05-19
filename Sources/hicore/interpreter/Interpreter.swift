@@ -134,6 +134,8 @@ extension Interpreter: ExprVisitor {
         case .LESS_EQUALS:
             return lNum <= rNum
         case .BANG:
+            return !isEqual(lNum, b: rNum)
+        case .EQUAL_EQUAL:
             return isEqual(lNum, b: rNum)
         case .PLUS:
             return lNum + rNum
@@ -180,6 +182,13 @@ extension Interpreter: ExprVisitor {
 
 // MARK: Statement Visitors
 extension Interpreter: StmtVisitor {
+    public func visitWhileStmt(_ stmt: While) throws -> Any? {
+        while isTruthy(try evaluate(stmt.condition)) {
+            try execute(stmt: stmt.body)
+        }
+        return nil
+    }
+    
     public func visitIfStmt(_ stmt: If) throws -> Any? {
         if isTruthy(try evaluate(stmt.condition)) {
             try execute(stmt: stmt.thenBranch)

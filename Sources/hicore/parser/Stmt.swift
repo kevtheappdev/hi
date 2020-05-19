@@ -14,6 +14,7 @@ public protocol StmtVisitor: class {
     func visitPrintStmt(_ stmt: Print) throws -> R
     func visitVarStmt(_ stmt: Var) throws -> R
     func visitIfStmt(_ stmt: If) throws -> R
+    func visitWhileStmt(_ stmt: While) throws -> R
 }
 
 public protocol Stmt {
@@ -60,5 +61,14 @@ public struct Var: Stmt {
     
     public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitVarStmt(self) as! R
+    }
+}
+
+public struct While: Stmt {
+    let condition: Expr
+    let body: Stmt
+    
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+        return try visitor.visitWhileStmt(self) as! R
     }
 }
