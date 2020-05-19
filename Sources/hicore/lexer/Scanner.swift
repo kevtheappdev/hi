@@ -49,10 +49,8 @@ public class Scanner {
             start = current
             do {
                 try scanToken()
-            } catch ScannerErrors.unexpectedToken(let line) {
-                return .failure(ScannerErrors.unexpectedToken(line: line))
             } catch {
-                fatalError("shit: \(error) with tokens: \(tokens)") // TODO: make this some generic error
+                return .failure(error)
             }
         }
         
@@ -96,8 +94,7 @@ public class Scanner {
             } else if isAlpha(c) {
                 identifier()
             } else {
-                print("bouta throw the error\(c)")
-                throw ScannerErrors.unexpectedToken(line: line)
+                throw ScannerErrors.unexpectedToken(line: line, message: "Unexpcted character.")
             }
         }
     }
@@ -148,7 +145,7 @@ public class Scanner {
         
         // Unterminated string
         if isAtEnd() {
-            throw ScannerErrors.unterminatedString(line: line)
+            throw ScannerErrors.unterminatedString(line: line, message: "Unterminated String")
         }
         
         _ = advance() // the closing "

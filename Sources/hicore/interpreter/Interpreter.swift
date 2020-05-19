@@ -86,12 +86,12 @@ extension Interpreter: ExprVisitor {
     public func visitAssignExpr(expr: Assign) throws -> Any? {
         let val = try evaluate(expr.value)
         
-        environment.assign(name: expr.name, value: val)
+        try environment.assign(name: expr.name, value: val)
         return val
     }
     
     public func visitVariableExpr(expr: Variable) throws -> Any? {
-        return environment.get(name: expr.name)
+        return try environment.get(name: expr.name)
     }
     
     public func visitBinaryExpr(expr: Binary) throws -> Any? {
@@ -104,7 +104,7 @@ extension Interpreter: ExprVisitor {
         }
         
         // operations on numbers
-        let (lNum, rNum) = try! getNumOperands(op: expr.op, left: left, right: right)
+        let (lNum, rNum) = try! operandsNumberValue(op: expr.op, left: left, right: right)
         switch expr.op.tokenType { // TODO: error check casts to Double, take care of PLUS operator (strings and double types)
         case .MINUS:
             return lNum - rNum
@@ -129,13 +129,13 @@ extension Interpreter: ExprVisitor {
         }
     }
     
-    private func getNumOperand(op: Token, operand: Any?) throws -> Double {
+    private func operandNumberValue(op: Token, operand: Any?) throws -> Double {
         if operand is Double { return operand as! Double }
         if operand == nil { throw RuntimeError(tok: op, message: "Operand is nada!.") }
         throw RuntimeError(tok: op, message: "Operand must be a number.")
     }
     
-    private func getNumOperands(op: Token, left: Any?, right: Any?) throws -> (Double, Double)  {
+    private func operandsNumberValue(op: Token, left: Any?, right: Any?) throws -> (Double, Double)  {
         if left is Double && right is Double { return (left as! Double, right as! Double)}
         if left == nil || right == nil { throw RuntimeError(tok: op, message: "Operand cannot be nada in binary expression!") }
         throw RuntimeError(tok: op, message: "Operands must be numbers")
@@ -154,7 +154,7 @@ extension Interpreter: ExprVisitor {
         
         switch expr.op.tokenType {
         case .MINUS:
-            let num = try! getNumOperand(op: expr.op, operand: right) // TODO: make visitor interface allow for throwing errors
+            let num = try! operandNumberValue(op: expr.op, operand: right) // TODO: make visitor interface allow for throwing errors
             return -(num)
         case .BANG:
             return !isTruthy(right)

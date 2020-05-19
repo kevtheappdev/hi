@@ -8,6 +8,7 @@
 import Foundation
 
 public enum ScannerErrors: Error {
-    case unexpectedToken(line: Int)
-    case unterminatedString(line: Int)
+    // TODO: have more clarity for error types
+    case unexpectedToken(line: Int, message: String)
+    case unterminatedString(line: Int, message: String)
 }

@@ -11,7 +11,6 @@ class Environment {
     private var values = Dictionary<String, Any?>()
     var enclosing: Environment? = nil
     
-    
     init() {}
     
     init(enclosing: Environment) {
@@ -22,28 +21,28 @@ class Environment {
         values[name] = value
     }
     
-    func get(name: Token) -> Any? {
+    func get(name: Token) throws -> Any? {
         if values.keys.contains(name.lexeme) {
             return values[name.lexeme]!
         }
         
         if let enclosingEnviron = enclosing {
-            return enclosingEnviron.get(name: name)
+            return try enclosingEnviron.get(name: name)
         }
         
-        return nil // TODO: error out here
+        throw RuntimeError(tok: name, message: "Undefined variable: \(name.lexeme).")
     }
     
-    func assign(name: Token, value: Any?) {
+    func assign(name: Token, value: Any?) throws {
         if values.keys.contains(name.lexeme) {
             values[name.lexeme] = value
         } else {
             if let enclosingEnviron = enclosing {
-                enclosingEnviron.assign(name: name, value: value)
+                try enclosingEnviron.assign(name: name, value: value)
                 return
             }
             
-            fatalError("Undefined Variable") // TODO: throw proper exception
+            throw RuntimeError(tok: name, message: "Attempting to assign to undefined variable: \(name.lexeme)")
         }
     }
 }

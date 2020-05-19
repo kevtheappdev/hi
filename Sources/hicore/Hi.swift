@@ -31,7 +31,8 @@ public class Hi {
             if let fileContents = String(data: fileData, encoding: .utf8) {
                 run(withInput: fileContents)
             } else {
-                fatalError("Unexpected contents of file: \(file)")
+                print("Unexpected contents of file: \(file)")
+                hadError = true
             }
             
             if hadError {
@@ -51,8 +52,15 @@ public class Hi {
         
         do {
             try result.get()
-        } catch { // TODO: fill this out
-            print("Encountered error: \(error)")
+        } catch let runtimeError as RuntimeError { // TODO: fill this out
+            print("Runtime Error: \(runtimeError.message)")
+            hadError = true
+        } catch ScannerErrors.unexpectedToken(let line, let message) {
+            error(line, message)
+        } catch ScannerErrors.unterminatedString(let line, let message) {
+            error(line, message)
+        } catch {
+            print("Encountered unexpected error: \(error.localizedDescription)")
         }
     }
     
