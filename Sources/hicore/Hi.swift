@@ -9,6 +9,7 @@ import Foundation
 
 public class Hi {
     static var hadError = false
+    static let interpreter = Interpreter()
     
     // MARK: Error handling
     public static func error(_ line: Int, _ message: String) {
@@ -40,19 +41,13 @@ public class Hi {
     
     public static func run(withInput input: String) {
         let scn = Scanner(withSource: input)
-        let interpreter = Interpreter()
-        
         let result = scn.scanTokens()
-                        .flatMap {(tokens) in
-                            return Parser(withTokens: tokens).parse()
-                        }.map { (expr) in
-                            let printer = AstPrinter()
-                            print(printer.print(expr))
-                            return expr
-                        }.flatMap {(expr) in
-                            return interpreter.interpret(expr: expr)
-                        }
-                
+            .flatMap {(tokens) in
+                return Parser(withTokens: tokens).parse()
+            }.flatMap {(stmts) in
+                return interpreter.interpret(statements: stmts)
+            }
+        
         do {
             try result.get()
         } catch { // TODO: fill this out

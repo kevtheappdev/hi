@@ -15,13 +15,64 @@ public class Parser {
         self.tokens = tokens
     }
     
-    public func parse() -> Swift.Result<Expr, Error> {
+    public func parse() -> Swift.Result<Array<Stmt>, Error> {
+        var statements = Array<Stmt>()
         do {
-            return try .success(expression()) // should error handle with exceptions
+            while !isAtEnd() {
+                statements.append(try declaration())
+            }
+            return .success(statements)
         } catch {
             return .failure(ParseError())
-//            fatalError("failed to parse expressions\(error)") // TODO: probably return nil here?
         }
+        
+    }
+    
+    private func declaration() throws -> Stmt {
+        if match(.VAR) { return try varDeclaration() }
+        return try statement()
+    }
+    
+    private func varDeclaration() throws -> Stmt {
+        let name = try consume(type: .IDENTIFIER, message: "Expect variable name")
+        
+        var initializer: Expr? = nil
+        if match(.EQUAL) {
+            initializer = try expression()
+        }
+        
+        _ = try consume(type: .SEMICOLON, message: "Expect ';' after variable declaration.")
+        return Var(name: name, initializer: initializer)
+    }
+    
+    private func statement() throws -> Stmt {
+        if match(.PRINT) { return try printStatement() }
+        if match(.LBRACE) { return Block(statements: try block())}
+        
+        return try expressionStatement()
+    }
+    
+    private func block() throws -> Array<Stmt> {
+        var statements = Array<Stmt>()
+        
+        while !check(.RBRACE) && !isAtEnd() {
+            statements.append(try declaration())
+        }
+        
+        _ = try consume(type: .RBRACE, message: "Expect '}' after block.")
+        return statements
+    }
+    
+    private func printStatement() throws -> Stmt {
+        let value = try expression()
+        try _ = consume(type: .SEMICOLON, message: "Expect ';' after value")
+        return Print(expression: value)
+    }
+    
+    private func expressionStatement() throws -> Stmt {
+        let expr = try expression()
+        try _ = consume(type: .SEMICOLON, message: "Expect ';' after expression.")
+        return Expression(expression: expr)
     }
     
     private func synchronize() {
@@ -35,7 +86,25 @@ public class Parser {
     }
     
     private func expression() throws -> Expr {
-        return try equality()
+        return try assignment()
+    }
+    
+    private func assignment() throws -> Expr {
+        let expr = try equality()
+        
+        if match(.EQUAL) {
+            let equals = previous()
+            let value = try assignment()
+            
+            if expr is Variable {
+                let name = (expr as! Variable).name
+                return Assign(name: name, value: value)
+            }
+            
+            _ = error(withTok: equals, andMessage: "Invalid assignment target.")
+        }
+        
+        return expr
     }
 
     private func equality() throws -> Expr {
@@ -103,6 +172,10 @@ public class Parser {
         
         if match(.NUMBER, .STRING) {
             return Literal(value: previous().literal)
+        }
+        
+        if match(.IDENTIFIER) {
+            return Variable(name: previous())
         }
         
         if match(.LPAREN) {

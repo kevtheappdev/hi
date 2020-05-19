@@ -52,7 +52,7 @@ public class Scanner {
             } catch ScannerErrors.unexpectedToken(let line) {
                 return .failure(ScannerErrors.unexpectedToken(line: line))
             } catch {
-                fatalError("never") // TODO: make this some generic error
+                fatalError("shit: \(error) with tokens: \(tokens)") // TODO: make this some generic error
             }
         }
         

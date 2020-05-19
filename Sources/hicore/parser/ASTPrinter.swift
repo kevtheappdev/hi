@@ -8,7 +8,15 @@
 import Foundation
 
 
-public class AstPrinter: Visitor {
+public class AstPrinter: ExprVisitor {
+    public func visitAssignExpr(expr: Assign) -> String {
+        return ""
+    }
+    
+    public func visitVariableExpr(expr: Variable) -> String {
+        return "" // TODO: revisit
+    }
+    
     public init() {}
     
 //    public func visitAssignExpr(expr: Assign) -> String {
