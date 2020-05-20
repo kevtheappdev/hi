@@ -9,6 +9,10 @@ import Foundation
 
 
 public class AstPrinter: ExprVisitor {
+    public func visitCallExpr(expr: Call) throws -> String {
+        return ""
+    }
+    
     public func visitLogicalExpr(expr: Logical) throws -> String {
         return ""
     }

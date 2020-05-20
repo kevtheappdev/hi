@@ -29,8 +29,27 @@ public class Parser {
     }
     
     private func declaration() throws -> Stmt {
+        if match(.FUN) { return try function("function")}
         if match(.VAR) { return try varDeclaration() }
         return try statement()
+    }
+    
+    private func function(_ kind: String) throws -> Function {
+        let name = try consume(type: .IDENTIFIER, message: "Expect \(kind) name.")
+        _ = try consume(type: .LPAREN, message: "Expect '(' after \(kind) name")
+        var params = Array<Token>()
+        if !check(.RPAREN) {
+            repeat {
+                if params.count >= 255 { _ = error(withTok: peek(), andMessage: "Can't have mroe than 255 \(kind) parameters")}
+                params.append(try consume(type: .IDENTIFIER, message: "Expected identifier"))
+            } while match(.COMMA)
+        }
+        
+        _ = try consume(type: .RPAREN, message: "Exptected RPAREN after function declaration")
+        _ = try consume(type: .LBRACE, message: "Expected '{' after \(kind) declaration")
+        
+        let body = try block()
+        return Function(name: name, params: params, body: body)
     }
     
     private func varDeclaration() throws -> Stmt {
@@ -48,10 +67,23 @@ public class Parser {
     private func statement() throws -> Stmt {
         if match(.IF) { return try ifStatement()}
         if match(.PRINT) { return try printStatement() }
+        if match(.RETURN) { return try returnStatement()}
         if match(.WHILE) { return try whileStatement()}
         if match(.LBRACE) { return Block(statements: try block())}
         
         return try expressionStatement()
+    }
+    
+    private func returnStatement() throws -> Return {
+        let kwd = previous()
+        var val: Expr? = nil
+        
+        if !check(.SEMICOLON) {
+            val = try expression()
+        }
+        
+        _ = try consume(type: .SEMICOLON, message: "Expected ';' after return")
+        return Return(kwd: kwd, value: val)
     }
     
     private func block() throws -> Array<Stmt> {
@@ -207,7 +239,34 @@ public class Parser {
             return Unary(op: op, right: right)
         }
         
-        return try primary()
+        return try call()
+    }
+    
+    private func call() throws -> Expr {
+        var expr = try primary()
+        
+        while true {
+            if match(.LPAREN) {
+                expr = try finishCall(expr)
+            } else {
+                break
+            }
+        }
+        
+        return expr
+    }
+    
+    private func finishCall(_ callee: Expr) throws -> Expr {
+        var args = Array<Expr>()
+        if !check(.RPAREN) {
+            repeat {
+                if args.count >= 255 { _ = error(withTok: peek(), andMessage: "Too many args for function")}
+                args.append(try expression())
+            } while match(.COMMA)
+        }
+        
+        let paren = try consume(type: .RPAREN, message: "Expect ')' to complete function call")
+        return Call(callee: callee, paren: paren, arguments: args)
     }
     
     private func primary() throws -> Expr {
@@ -229,7 +288,7 @@ public class Parser {
             return Grouping(expression: expr)
         }
         
-        fatalError("expected expression")
+        throw ParseError() // be more specific here
     }
     
     private func match(_ types: TokenType...) -> Bool {

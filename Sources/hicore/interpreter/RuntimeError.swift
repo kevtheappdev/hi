@@ -11,9 +11,10 @@ import Foundation
 struct RuntimeError: Error {
     let tok: Token
     let message: String
-    
-    init(tok: Token, message: String) {
-        self.tok = tok
-        self.message = message
-    }
+}
+
+struct ArgumentError: Error {}
+
+struct ReturnExcept: Error {
+    let val: Any?
 }

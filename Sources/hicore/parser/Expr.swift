@@ -12,7 +12,7 @@ public protocol ExprVisitor: class {
     associatedtype R
     func visitAssignExpr(expr: Assign) throws -> R
     func visitBinaryExpr(expr: Binary) throws -> R
-//    func visitCallExpr(expr: Call) -> R
+    func visitCallExpr(expr: Call) throws -> R
     func visitGroupingExpr(expr: Grouping) throws -> R
     func visitLiteralExpr(expr: Literal) throws -> R
     func visitLogicalExpr(expr: Logical) throws -> R
@@ -45,16 +45,16 @@ public struct Binary: Expr {
     }
 }
 
-//
-//public struct Call: Expr {
-//    let callee: Expr
-//    let paren: Token
-//    let arguments: Array<Expr>
-//
-//    public func acceptVisitor<T, R>(visitor: T) -> R where T : Visitor {
-//        return visitor.visitCallExpr(expr: self) as! R
-//    }
-//}
+
+public struct Call: Expr {
+    let callee: Expr
+    let paren: Token
+    let arguments: Array<Expr>
+
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitCallExpr(expr: self) as! R
+    }
+}
 
 public struct Grouping: Expr {
     let expression: Expr

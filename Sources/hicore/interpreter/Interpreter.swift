@@ -8,9 +8,22 @@
 import Foundation
 
 public class Interpreter {
-    var environment = Environment()
+    let globals = Environment()
+    var environment: Environment
     
-    public init() {}
+    public init() {
+        environment = globals
+        
+        // init stdlib
+        globals.define(name: "clock", value: Clock())
+        globals.define(name: "sin", value: Sin())
+        globals.define(name: "cos", value: Cos())
+        globals.define(name: "tan", value: Tan())
+        globals.define(name: "round", value: Round())
+        
+        // constants
+        globals.define(name: "PI", value: Double.pi)
+    }
     
     public func interpret(statements: Array<Stmt>) -> Swift.Result<(), Error> {
         do {
@@ -28,7 +41,7 @@ public class Interpreter {
         _ = try stmt.acceptVisitor(visitor: self) as Any
     }
     
-    private func executeBlock(stmts: Array<Stmt>, environ: Environment) throws {
+    internal func executeBlock(stmts: Array<Stmt>, environ: Environment) throws {
         let prev = self.environment
         defer {
             self.environment = prev
@@ -83,6 +96,26 @@ public class Interpreter {
 
 // MARK: Expression Visitors
 extension Interpreter: ExprVisitor {
+    public func visitCallExpr(expr: Call) throws -> Any? {
+        let callee = try evaluate(expr.callee)
+        
+        if !(callee is HiCallable) {
+            throw RuntimeError(tok: expr.paren, message: "Uncallable type")
+        }
+        
+        var args = Array<Any?>()
+        for arg in expr.arguments {
+            args.append(try evaluate(arg))
+        }
+        
+        let callable = callee as! HiCallable
+        if callable.arity() != args.count {
+            throw RuntimeError(tok: expr.paren, message: "Expected \(callable.arity()) arguments but got \(args.count)")
+        }
+        
+        return try callable.call(self, args: args)
+    }
+    
     public func visitLogicalExpr(expr: Logical) throws -> Any? {
         let left = try evaluate(expr.left)
         
@@ -182,6 +215,21 @@ extension Interpreter: ExprVisitor {
 
 // MARK: Statement Visitors
 extension Interpreter: StmtVisitor {
+    public func visitReturnStmt(_ stmt: Return) throws -> Any? {
+        var val: Any? = nil
+        if let returnVal = stmt.value {
+            val = try evaluate(returnVal)
+        }
+        
+        throw ReturnExcept(val: val)
+    }
+    
+    public func visitFunctionStmt(_ stmt: Function) throws -> Any? {
+        let fun = HiFunction(declaration: stmt)
+        environment.define(name: stmt.name.lexeme, value: fun)
+        return nil
+    }
+    
     public func visitWhileStmt(_ stmt: While) throws -> Any? {
         while isTruthy(try evaluate(stmt.condition)) {
             try execute(stmt: stmt.body)
