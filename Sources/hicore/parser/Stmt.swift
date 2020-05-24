@@ -20,6 +20,7 @@ public protocol StmtVisitor: class {
     func visitClassStmt(_ stmt: Class) throws -> R
 }
 
+// TODO: convert to classes
 public protocol Stmt {
     func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor
 }
@@ -39,6 +40,7 @@ public struct Block: Stmt {
 public struct Class: Stmt {
     let name: Token
     let methods: Array<Function>
+    let superclass: Variable?
     
     public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitClassStmt(self) as! R

@@ -16,18 +16,24 @@ class HiClass: HiCallable, CustomStringConvertible {
     
     let name: String
     let methods: Dictionary<String, HiFunction>
+    let superclass: HiClass?
     
-    init(name: String, methods: Dictionary<String, HiFunction>) {
+    init(name: String, methods: Dictionary<String, HiFunction>, superclass: HiClass?) {
         self.name = name
         self.methods = methods
+        self.superclass = superclass
     }
     
     func findMethod(name: String) -> HiFunction? {
         if methods.keys.contains(name) {
             return methods[name]
-        } else {
-            return nil
         }
+        
+        if let superclass = self.superclass {
+            return superclass.findMethod(name: name)
+        }
+        
+        return nil
     }
     
     func arity() -> Int {

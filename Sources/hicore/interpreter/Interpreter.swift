@@ -105,6 +105,22 @@ public class Interpreter {
 
 // MARK: Expression Visitors
 extension Interpreter: ExprVisitor {
+    public func visitSuperExpr(expr: Super) throws -> Any? {
+        if let distance = locals[expr] {
+            let superclass = (try environment.get(AtDistance: distance, name: "super") as! HiClass)
+            let hiSelf = (try environment.get(AtDistance: distance - 1, name: "self") as! HiInstance)
+            
+            if let method = superclass.findMethod(name: expr.method.lexeme) {
+                return method.bind(instance: hiSelf)
+            } else {
+                throw RuntimeError(tok: expr.method, message: "Method not found on super class.")
+            }
+            
+        }
+        
+        throw RuntimeError(tok: expr.kwd, message: "Super expression not resolved.")
+    }
+    
     public func visitSelfExpr(expr: HiSelf) throws -> Any? {
         return try lookUpVariable(name: expr.kwd, expr: expr)
     }
@@ -264,15 +280,34 @@ extension Interpreter: ExprVisitor {
 // MARK: Statement Visitors
 extension Interpreter: StmtVisitor {
     public func visitClassStmt(_ stmt: Class) throws -> Any? {
+        var superclass: Any? = nil
+        var hasSuperClass = false
+        if let superclassExpr = stmt.superclass {
+            hasSuperClass = true
+             superclass = try evaluate(superclassExpr)
+            if !(superclass is HiClass) {
+                throw RuntimeError(tok: superclassExpr.name, message: "Superclass must be a class.")
+            }
+        }
+        
+        
         environment.define(name: stmt.name.lexeme, value: nil)
-
+        
+        
+        if hasSuperClass {
+            environment = Environment(enclosing: environment)
+            environment.define(name: "super", value: superclass)
+        }
         
         var methods = Dictionary<String, HiFunction>()
         for method in stmt.methods {
             let hiFunc = HiFunction(declaration: method, closure: environment, isInitializer: method.name.lexeme == "init")
             methods[method.name.lexeme] = hiFunc
         }
-        let hiClass = HiClass(name: stmt.name.lexeme, methods: methods)
+        
+        let hiClass = HiClass(name: stmt.name.lexeme, methods: methods, superclass: (superclass as? HiClass))
+        
+        if hasSuperClass { environment = environment.enclosing! }
         try environment.assign(name: stmt.name, value: hiClass)
         
         return nil

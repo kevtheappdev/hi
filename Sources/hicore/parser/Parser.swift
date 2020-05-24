@@ -37,6 +37,13 @@ public class Parser {
     
     private func classDeclaration() throws -> Stmt {
         let name = try consume(type: .IDENTIFIER, message: "Expected name after class declaration.")
+        
+        var superclass: Variable? = nil
+        if match(.LESS) {
+            _ = try consume(type: .IDENTIFIER, message: "Expect superclass name.")
+            superclass = Variable(name: previous())
+        }
+        
         _ = try consume(type: .LBRACE, message: "Expected '}' ")
         
         var methods = Array<Function>()
@@ -45,7 +52,7 @@ public class Parser {
         }
         
         _ = try consume(type: .RBRACE, message: "Expect '}' after class body")
-        return Class(name: name, methods: methods)
+        return Class(name: name, methods: methods, superclass: superclass)
     }
     
     private func function(_ kind: String) throws -> Function {
@@ -296,6 +303,13 @@ public class Parser {
         
         if match(.NUMBER, .STRING) {
             return Literal(value: previous().literal)
+        }
+        
+        if match(.SUPER) {
+            let kwd = previous()
+            _ = try consume(type: .DOT, message: "Expect '.' after 'super'.")
+            let method = try consume(type: .IDENTIFIER, message: "Expect superclass method name")
+            return Super(kwd: kwd, method: method)
         }
         
         if match(.SELF) {

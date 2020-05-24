@@ -10,6 +10,8 @@ import Foundation
 class Resolver: ExprVisitor, StmtVisitor {
 
     
+
+    
     
     private let interpreter: Interpreter
     private final var scopes = Array<Dictionary<String, Bool>>()
@@ -31,6 +33,17 @@ class Resolver: ExprVisitor, StmtVisitor {
         return .success(stmts)
     }
     
+    func visitSuperExpr(expr: Super) throws -> Any? {
+        // TODO: fix this.. obviously
+        if currentClass == .NONE {
+            print("Can't use super outside of a class.")
+        } else if currentClass != .SUBCLASS{
+            print("Can't use super in a class with no superclass.")
+        }
+        
+        resolveLocal(expr: expr, name: expr.kwd)
+        return nil
+    }
     
     func visitSetExpr(expr: Set) throws -> Any? {
         try resolve(expr: expr.value)
@@ -173,6 +186,22 @@ class Resolver: ExprVisitor, StmtVisitor {
         declare(name: stmt.name)
         define(name: stmt.name)
         
+        var hasSuperClass = false
+        if let superclass = stmt.superclass {
+            if superclass.name.lexeme == stmt.name.lexeme {
+                print("Error: A class cannot inherit from itself") // TODO: FIXME!!
+            }
+            try resolve(expr: superclass)
+            hasSuperClass = true
+            currentClass = .SUBCLASS
+        }
+        
+        if hasSuperClass {
+            beginScope()
+            var scope = scopes.popLast()!
+            scope["super"] = true
+            scopes.append(scope)
+        }
         
         beginScope()
         var lastScope = scopes.popLast()!
@@ -188,6 +217,8 @@ class Resolver: ExprVisitor, StmtVisitor {
         }
         
         endScope()
+        if hasSuperClass { endScope() }
+        
         currentClass = enclosingClass
         return nil
     }
@@ -278,4 +309,5 @@ private enum FunctionType {
 private enum ClassType {
     case NONE
     case CLASS
+    case SUBCLASS
 }

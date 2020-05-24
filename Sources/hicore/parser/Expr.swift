@@ -21,6 +21,7 @@ public protocol ExprVisitor: class {
     func visitGetExpr(expr: Get) throws -> R
     func visitSetExpr(expr: Set) throws -> R
     func visitSelfExpr(expr: HiSelf) throws -> R
+    func visitSuperExpr(expr: Super) throws -> R
 }
 
 public class Expr: Hashable {
@@ -208,5 +209,20 @@ public class HiSelf: Expr {
     
     override func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
         return try visitor.visitSelfExpr(expr: self) as! R
+    }
+}
+
+
+public class Super: Expr {
+    let kwd: Token
+    let method: Token
+    
+    init(kwd: Token, method: Token) {
+        self.kwd = kwd
+        self.method = method
+    }
+    
+    override func acceptVisitor<T, R>(visitor: T) throws -> R where T : ExprVisitor {
+        return try visitor.visitSuperExpr(expr: self) as! R
     }
 }
