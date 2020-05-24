@@ -7,8 +7,16 @@
 
 import Foundation
 
-
+/*
 public class AstPrinter: ExprVisitor {
+    public func visitSetExpr(expr: Set) throws -> String {
+        return ""
+    }
+    
+    public func visitGetExpr(expr: Get) throws -> String {
+        return ""
+    }
+    
     public func visitCallExpr(expr: Call) throws -> String {
         return ""
     }
@@ -71,3 +79,4 @@ public class AstPrinter: ExprVisitor {
     
     
 }
+*/

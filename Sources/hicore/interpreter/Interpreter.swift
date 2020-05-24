@@ -9,7 +9,8 @@ import Foundation
 
 public class Interpreter {
     let globals = Environment()
-    var environment: Environment
+    private var environment: Environment
+    private var locals = Dictionary<Expr, Int>()
     
     public init() {
         environment = globals
@@ -54,6 +55,10 @@ public class Interpreter {
         }
     }
     
+    func resolve(expr: Expr, depth: Int) {
+        locals[expr] = depth
+    }
+    
     private func stringify(_ obj: Any?) -> String {
         guard let nonNilObj = obj else { return "nada" }
         
@@ -70,7 +75,11 @@ public class Interpreter {
             return bool ? "yerr" : "nah"
         }
         
-        fatalError("unexpected type in stringify")
+        if let stringConvertible = nonNilObj as? CustomStringConvertible {
+            return stringConvertible.description
+        }
+        
+        fatalError("Object could not be stringified")
     }
         
     private func isEqual<T: Equatable>(_ a: T?, b: T?) -> Bool {
@@ -96,6 +105,31 @@ public class Interpreter {
 
 // MARK: Expression Visitors
 extension Interpreter: ExprVisitor {
+    public func visitSelfExpr(expr: HiSelf) throws -> Any? {
+        return try lookUpVariable(name: expr.kwd, expr: expr)
+    }
+    
+    public func visitSetExpr(expr: Set) throws -> Any? {
+        let obj = try evaluate(expr.obj)
+        
+        if !(obj is HiInstance) {
+            throw RuntimeError(tok: expr.name, message: "Only instances have fields.")
+        }
+        
+        let val = try evaluate(expr.value)
+        (obj as! HiInstance).set(name: expr.name, val: val)
+        return val
+    }
+    
+    public func visitGetExpr(expr: Get) throws -> Any? {
+        let obj = try evaluate(expr.obj)
+        if let hiInstance = obj as? HiInstance {
+            return try hiInstance.get(index: expr.name)
+        }
+        
+        return nil
+    }
+    
     public func visitCallExpr(expr: Call) throws -> Any? {
         let callee = try evaluate(expr.callee)
         
@@ -132,12 +166,17 @@ extension Interpreter: ExprVisitor {
     public func visitAssignExpr(expr: Assign) throws -> Any? {
         let val = try evaluate(expr.value)
         
-        try environment.assign(name: expr.name, value: val)
+        if let distance = locals[expr] {
+            try environment.assign(AtDistance: distance, name: expr.name, value: val)
+        } else {
+            try globals.assign(name: expr.name, value: expr.value)
+        }
+    
         return val
     }
     
     public func visitVariableExpr(expr: Variable) throws -> Any? {
-        return try environment.get(name: expr.name)
+        return try lookUpVariable(name: expr.name, expr: expr)
     }
     
     public func visitBinaryExpr(expr: Binary) throws -> Any? {
@@ -175,6 +214,15 @@ extension Interpreter: ExprVisitor {
         default:
             throw RuntimeError(tok: expr.op, message: "Invalid operands for binary expression")
         }
+    }
+    
+    private func lookUpVariable(name: Token, expr: Expr) throws -> Any? {
+        if let distance = locals[expr] {
+            return try environment.get(AtDistance: distance, name: name.lexeme)
+        } else {
+            return try globals.get(name: name)
+        }
+        
     }
     
     private func operandNumberValue(op: Token, operand: Any?) throws -> Double {
@@ -215,6 +263,21 @@ extension Interpreter: ExprVisitor {
 
 // MARK: Statement Visitors
 extension Interpreter: StmtVisitor {
+    public func visitClassStmt(_ stmt: Class) throws -> Any? {
+        environment.define(name: stmt.name.lexeme, value: nil)
+
+        
+        var methods = Dictionary<String, HiFunction>()
+        for method in stmt.methods {
+            let hiFunc = HiFunction(declaration: method, closure: environment, isInitializer: method.name.lexeme == "init")
+            methods[method.name.lexeme] = hiFunc
+        }
+        let hiClass = HiClass(name: stmt.name.lexeme, methods: methods)
+        try environment.assign(name: stmt.name, value: hiClass)
+        
+        return nil
+    }
+    
     public func visitReturnStmt(_ stmt: Return) throws -> Any? {
         var val: Any? = nil
         if let returnVal = stmt.value {
@@ -225,7 +288,7 @@ extension Interpreter: StmtVisitor {
     }
     
     public func visitFunctionStmt(_ stmt: Function) throws -> Any? {
-        let fun = HiFunction(declaration: stmt)
+        let fun = HiFunction(declaration: stmt, closure: environment)
         environment.define(name: stmt.name.lexeme, value: fun)
         return nil
     }
@@ -272,6 +335,5 @@ extension Interpreter: StmtVisitor {
         environment.define(name: stmt.name.lexeme, value: val)
         return nil
     }
-    
     
 }

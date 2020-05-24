@@ -33,6 +33,27 @@ class Environment {
         throw RuntimeError(tok: name, message: "Undefined variable: \(name.lexeme).")
     }
     
+    func get(AtDistance distance: Int, name: String) throws -> Any?{
+        return try ancestor(AtDistance: distance).values[name] as Any?
+    }
+    
+    func ancestor(AtDistance distance: Int) throws -> Environment {
+        var environment = self
+        for _ in 0..<distance {
+            if let enclosing = environment.enclosing {
+                environment = enclosing
+            } else {
+                throw ParseError() // TODO: make this a special type of error
+            }
+        }
+        
+        return environment
+    }
+    
+    func assign(AtDistance distance: Int, name: Token, value: Any?) throws {
+        try ancestor(AtDistance: distance).values[name.lexeme] = value
+    }
+    
     func assign(name: Token, value: Any?) throws {
         if values.keys.contains(name.lexeme) {
             values[name.lexeme] = value

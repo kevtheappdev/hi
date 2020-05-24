@@ -17,13 +17,14 @@ public protocol StmtVisitor: class {
     func visitReturnStmt(_ stmt: Return) throws -> R
     func visitIfStmt(_ stmt: If) throws -> R
     func visitWhileStmt(_ stmt: While) throws -> R
+    func visitClassStmt(_ stmt: Class) throws -> R
 }
 
 public protocol Stmt {
     func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor
 }
 
-public class Block: Stmt {
+public struct Block: Stmt {
     let statements: Array<Stmt>
     
     init(statements: Array<Stmt>) {
@@ -35,7 +36,17 @@ public class Block: Stmt {
     }
 }
 
-public class If: Stmt {
+public struct Class: Stmt {
+    let name: Token
+    let methods: Array<Function>
+    
+    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+        return try visitor.visitClassStmt(self) as! R
+    }
+}
+
+
+public struct If: Stmt {
     let condition: Expr
     let thenBranch: Stmt
     let elseBranch: Stmt?
@@ -51,7 +62,7 @@ public class If: Stmt {
     }
 }
 
-public class Expression: Stmt {
+public struct Expression: Stmt {
     let expression: Expr
     
     init(expression: Expr) {
@@ -63,7 +74,7 @@ public class Expression: Stmt {
     }
 }
 
-public class Print: Stmt {
+public struct Print: Stmt {
     let expression: Expr
     
     init(expression: Expr) {
@@ -75,7 +86,7 @@ public class Print: Stmt {
     }
 }
 
-public class Function: Stmt {
+public struct Function: Stmt {
     let name: Token
     let params: Array<Token>
     let body: Array<Stmt>
@@ -91,7 +102,7 @@ public class Function: Stmt {
     }
 }
 
-public class Return: Stmt {
+public struct Return: Stmt {
     let kwd: Token
     let value: Expr?
     
@@ -105,7 +116,7 @@ public class Return: Stmt {
     }
 }
 
-public class Var: Stmt {
+public struct Var: Stmt {
     let name: Token
     let initializer: Expr?
     
@@ -119,7 +130,7 @@ public class Var: Stmt {
     }
 }
 
-public class While: Stmt {
+public struct While: Stmt {
     let condition: Expr
     let body: Stmt
     

@@ -30,8 +30,22 @@ public class Parser {
     
     private func declaration() throws -> Stmt {
         if match(.FUN) { return try function("function")}
+        if match(.CLASS) { return try classDeclaration()}
         if match(.VAR) { return try varDeclaration() }
         return try statement()
+    }
+    
+    private func classDeclaration() throws -> Stmt {
+        let name = try consume(type: .IDENTIFIER, message: "Expected name after class declaration.")
+        _ = try consume(type: .LBRACE, message: "Expected '}' ")
+        
+        var methods = Array<Function>()
+        while !check(.RBRACE) && !isAtEnd() {
+            methods.append(try function("method"))
+        }
+        
+        _ = try consume(type: .RBRACE, message: "Expect '}' after class body")
+        return Class(name: name, methods: methods)
     }
     
     private func function(_ kind: String) throws -> Function {
@@ -152,6 +166,9 @@ public class Parser {
             if expr is Variable {
                 let name = (expr as! Variable).name
                 return Assign(name: name, value: value)
+            } else if expr is Get {
+                let get = expr as! Get
+                return Set(obj: get.obj, name: get.name, value: value)
             }
             
             _ = error(withTok: equals, andMessage: "Invalid assignment target.")
@@ -248,6 +265,9 @@ public class Parser {
         while true {
             if match(.LPAREN) {
                 expr = try finishCall(expr)
+            } else if match(.DOT) {
+                let name = try consume(type: .IDENTIFIER, message: "Expected property name after '.'")
+                expr = Get(obj: expr, name: name)
             } else {
                 break
             }
@@ -276,6 +296,10 @@ public class Parser {
         
         if match(.NUMBER, .STRING) {
             return Literal(value: previous().literal)
+        }
+        
+        if match(.SELF) {
+            return HiSelf(kwd: previous())
         }
         
         if match(.IDENTIFIER) {

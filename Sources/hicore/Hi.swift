@@ -47,6 +47,9 @@ public class Hi {
             .flatMap {(tokens) in
                 return Parser(withTokens: tokens).parse()
             }.flatMap {(stmts) in
+                let resolver = Resolver(interpreter: interpreter)
+                return resolver.resolve(All: stmts)
+            }.flatMap {(stmts) in
                 return interpreter.interpret(statements: stmts)
             }
         
