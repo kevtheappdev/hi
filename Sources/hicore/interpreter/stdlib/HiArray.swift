@@ -25,23 +25,39 @@ class ArrayAdder: HiCallable {
     }
 }
 
-class ArraySorter: HiCallable {
+class ArrayGoodSorter: HiCallable {
     var instance: HiArrayInstance
     
     init(instance: HiArrayInstance) {
         self.instance = instance
     }
     
-    func numberArray() -> Array<Double> {
-        var nums = Array<Double>()
-        for item in instance.data {
-            nums.append(item as! Double)
-        }
-        return nums
+    func arity() -> Int {
+        return 0
     }
     
+    func call(_ interpreter: Interpreter, args: Array<Any?>) throws -> Any? {
+        if !instance.isUniform() { throw ArgumentError() }
+        if instance.data.count == 0 { return nil }
+        if instance.data[0] is Double {
+            var numArray = instance.numberArray()
+            numArray.sort()
+            instance.data = numArray
+        }
+        
+        return nil
+    }
+}
+
+class ArraySorter: HiCallable {
+    var instance: HiArrayInstance
+    
+    init(instance: HiArrayInstance) {
+        self.instance = instance
+    }
+
     func numArraySorted() -> Bool {
-        let numArray = numberArray()
+        let numArray = instance.numberArray()
         var last = numArray[0]
         for i in 1..<numArray.count {
             if numArray[i] < last {
@@ -52,26 +68,12 @@ class ArraySorter: HiCallable {
         return true
     }
     
-    func isUniform() -> Bool {
-        if instance.data.count == 0 { return true }
-        var last = instance.data[0]
-        for i in 1..<instance.data.count {
-            let curr = instance.data[i]
-            if object_getClassName(curr) != object_getClassName(last) {
-                return false
-            }
-            last = curr
-        }
-        
-        return true
-    }
-    
     func arity() -> Int {
         return 0
     }
     
     func call(_ interpreter: Interpreter, args: Array<Any?>) throws -> Any? {
-        if !isUniform() { throw ArgumentError() } // TODO: make more specific
+        if !instance.isUniform() { throw ArgumentError() } // TODO: make more specific
         if instance.data.count == 0 {
             return nil
         }
@@ -158,6 +160,29 @@ class HiArrayInstance: HiInstance {
         super.init(klass: hiClass)
     }
     
+    func numberArray() -> Array<Double> {
+        var nums = Array<Double>()
+        for item in data {
+            nums.append(item as! Double)
+        }
+        return nums
+    }
+    
+    
+    func isUniform() -> Bool {
+        if data.count == 0 { return true }
+        var last = data[0]
+        for i in 1..<data.count {
+            let curr = data[i]
+            if object_getClassName(curr) != object_getClassName(last) {
+                return false
+            }
+            last = curr
+        }
+        
+        return true
+    }
+    
     override func get(index: Token) throws -> Any? {
         if index.lexeme == "get" {
             return ArrayGetter(instance: self)
@@ -169,6 +194,8 @@ class HiArrayInstance: HiInstance {
             return ArraySorter(instance: self)
         } else if index.lexeme == "add" {
             return ArrayAdder(instance: self)
+        } else if index.lexeme == "goodSort" {
+            return ArrayGoodSorter(instance: self)
         }
         
         throw RuntimeError(tok: index, message: "Undefined property \(index.lexeme)")

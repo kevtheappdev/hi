@@ -1,6 +1,7 @@
-var start = clock();
-var arr = [3, 2, 1];
-print arr;
-arr.sort(); // bogo sort
-print arr;
-print clock() - start;
+var a = 5;
+var b = "hi";
+var c = [a, b, "kevin"];
+print c;
+c.set(1, 6);
+print b;
+print c;

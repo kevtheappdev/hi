@@ -93,6 +93,11 @@ class Resolver: ExprVisitor, StmtVisitor {
     }
     
     func visitLiteralExpr(expr: Literal) throws -> Any? {
+        if let litArray = expr.value as? Array<Expr> {
+            for val in litArray {
+                try resolve(expr: val)
+            }
+        }
         return nil
     }
     
