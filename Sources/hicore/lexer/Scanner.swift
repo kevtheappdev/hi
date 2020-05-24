@@ -75,6 +75,8 @@ public class Scanner {
         case "=": addToken(ofType: match(expected: "=") ? .EQUAL_EQUAL : .EQUAL); break
         case "<": addToken(ofType: match(expected: "=") ? .LESS_EQUALS : .LESS); break
         case ">": addToken(ofType: match(expected: "=") ? .GREATER_EQUALS : .GREATER); break
+        case "[": addToken(ofType: .LSQUARE); break
+        case "]": addToken(ofType: .RSQUARE); break;
         case "/":
             if (match(expected: "/")) {
                 while (peek() != "\n" && !isAtEnd()) { _ = advance() } // comments

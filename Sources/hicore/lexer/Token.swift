@@ -48,6 +48,8 @@ public enum TokenType {
     case WHILE
     case FOR
     case EOF
+    case LSQUARE
+    case RSQUARE
 }
 
 public class Token: CustomDebugStringConvertible {

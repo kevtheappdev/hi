@@ -77,7 +77,7 @@ public class Interpreter {
         }
         
         if let stringConvertible = nonNilObj as? CustomStringConvertible {
-            return stringConvertible.description
+            return String(describing: stringConvertible)
         }
         
         fatalError("Object could not be stringified")
