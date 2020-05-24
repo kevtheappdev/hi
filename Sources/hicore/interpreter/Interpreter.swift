@@ -21,6 +21,7 @@ public class Interpreter {
         globals.define(name: "cos", value: Cos())
         globals.define(name: "tan", value: Tan())
         globals.define(name: "round", value: Round())
+        globals.define(name: "Array", value: HiArray())
         
         // constants
         globals.define(name: "PI", value: Double.pi)
