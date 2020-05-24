@@ -109,6 +109,8 @@ public class Literal: Expr, CustomDebugStringConvertible {
                 return String(value as! Float)
             } else if value is Int {
                 return String(value as! Int)
+            } else if value is Array<Expr> {
+                return String(describing: value as! Array<Expr>)
             } else {
                 fatalError("Invalid Literal") // TODO: probably an overreaction
             }

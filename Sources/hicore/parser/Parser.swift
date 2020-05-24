@@ -305,6 +305,18 @@ public class Parser {
             return Literal(value: previous().literal)
         }
         
+        if match(.LSQUARE) {
+            var contents = Array<Expr>()
+            if !check(.RSQUARE) {
+                repeat {
+                    let expr = try expression()
+                    contents.append(expr)
+                } while match(.COMMA)
+            }
+            _ = try consume(type: .RSQUARE, message: "Expect closing ']' for array literal")
+            return Literal(value: contents)
+        }
+        
         if match(.SUPER) {
             let kwd = previous()
             _ = try consume(type: .DOT, message: "Expect '.' after 'super'.")

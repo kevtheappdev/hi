@@ -259,6 +259,16 @@ extension Interpreter: ExprVisitor {
     }
     
     public func visitLiteralExpr(expr: Literal) throws -> Any? {
+        if expr.value is Array<Expr> {
+            let literalArray = expr.value as! Array<Expr>
+            let hiArray = HiArrayInstance(size: 0)
+            let hiAdder = ArrayAdder(instance: hiArray)
+            for item in literalArray {
+                let litVal = try evaluate(item)
+                _ = try hiAdder.call(self, args: [litVal])
+            }
+            return hiArray
+        }
         return expr.value // TODO: unwrap gracefully
     }
     
