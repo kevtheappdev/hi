@@ -21,34 +21,42 @@ public protocol StmtVisitor: class {
 }
 
 // TODO: convert to classes
-public protocol Stmt {
-    func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor
+public class Stmt {
+    func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+        fatalError("Not implemented: Stmt is abstract")
+    }
 }
 
-public struct Block: Stmt {
+public class Block: Stmt {
     let statements: Array<Stmt>
     
     init(statements: Array<Stmt>) {
         self.statements = statements
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitBlockStmt(self) as! R
     }
 }
 
-public struct Class: Stmt {
+public class Class: Stmt {
     let name: Token
     let methods: Array<Function>
     let superclass: Variable?
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    init(name: Token, methods: Array<Function>, superclass: Variable?) {
+        self.name = name
+        self.methods = methods
+        self.superclass = superclass
+    }
+    
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitClassStmt(self) as! R
     }
 }
 
 
-public struct If: Stmt {
+public class If: Stmt {
     let condition: Expr
     let thenBranch: Stmt
     let elseBranch: Stmt?
@@ -59,36 +67,36 @@ public struct If: Stmt {
         self.elseBranch = elseBranch
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitIfStmt(self) as! R
     }
 }
 
-public struct Expression: Stmt {
+public class Expression: Stmt {
     let expression: Expr
     
     init(expression: Expr) {
         self.expression = expression
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitExpressionStmt(self) as! R
     }
 }
 
-public struct Print: Stmt {
+public class Print: Stmt {
     let expression: Expr
     
     init(expression: Expr) {
         self.expression = expression
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitPrintStmt(self) as! R
     }
 }
 
-public struct Function: Stmt {
+public class Function: Stmt {
     let name: Token
     let params: Array<Token>
     let body: Array<Stmt>
@@ -99,12 +107,12 @@ public struct Function: Stmt {
         self.body = body
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitFunctionStmt(self) as! R
     }
 }
 
-public struct Return: Stmt {
+public class Return: Stmt {
     let kwd: Token
     let value: Expr?
     
@@ -113,12 +121,12 @@ public struct Return: Stmt {
         self.value = value
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitReturnStmt(self) as! R
     }
 }
 
-public struct Var: Stmt {
+public class Var: Stmt {
     let name: Token
     let initializer: Expr?
     
@@ -127,12 +135,12 @@ public struct Var: Stmt {
         self.initializer = initializer
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitVarStmt(self) as! R
     }
 }
 
-public struct While: Stmt {
+public class While: Stmt {
     let condition: Expr
     let body: Stmt
     
@@ -141,7 +149,7 @@ public struct While: Stmt {
         self.body = body
     }
     
-    public func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
+    public override func acceptVisitor<T, R>(visitor: T) throws -> R where T : StmtVisitor {
         return try visitor.visitWhileStmt(self) as! R
     }
 }
