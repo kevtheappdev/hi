@@ -186,7 +186,7 @@ extension Interpreter: ExprVisitor {
         if let distance = locals[expr] {
             try environment.assign(AtDistance: distance, name: expr.name, value: val)
         } else {
-            try globals.assign(name: expr.name, value: expr.value)
+            try globals.assign(name: expr.name, value: val)
         }
     
         return val

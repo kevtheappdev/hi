@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 var a = 5;
 var b = "hi";
 var c = [a, b, "kevin"];
@@ -5,3 +6,9 @@ print c;
 c.set(1, 6);
 print b;
 print c;
+
+var a = 0;
+while a < 5 {
+    print a;
+    a = a + 1;
+}
